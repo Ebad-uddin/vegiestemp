@@ -5,8 +5,15 @@ include('admin/includes/topbar.php');
 include('../config.php');
 
 // Display Products
-
-$product_query = "SELECT * FROM `products` as p inner join category as c on p.category = c.cid order by id DESC";
+$limit = 2;
+if(isset($_GET['pg'])){
+ $pgno = $_GET['pg'];
+    
+} else{
+    $pgno = 1;
+}
+$initial = ($pgno - 1) * $limit;
+$product_query = "SELECT * FROM `products` as p inner join category as c on p.category = c.cid  order by id DESC limit {$initial}, {$limit}";
 $conn_query = mysqli_query($connection, $product_query);
 if(mysqli_num_rows($conn_query) > 0){
 
@@ -24,7 +31,7 @@ if(mysqli_num_rows($conn_query) > 0){
 <div class="col-xl-10 col-lg-12 col-md-9">
     <h2>All Categories </h2>
     <hr>
-<table class="table table-warning text-center">
+<table class="table table-warning text-center" >
     <thead class="bg-warning p-2 text-dark bg-opacity-10" style="opacity: 75%;">
         <tr>
         <th scope="col">Id</th>
@@ -37,7 +44,7 @@ if(mysqli_num_rows($conn_query) > 0){
         <th scope="col">Delete</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody style=" font-size: 20px;">
         <?php 
             while($pro_data = mysqli_fetch_assoc($conn_query)){
 
@@ -69,15 +76,31 @@ if(mysqli_num_rows($conn_query) > 0){
     
     </tbody>
 </table>
-<nav aria-label="Page navigation example">
-        <ul class="pagination">
-            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
-        </ul>
-        </nav>
+<?php
+$pagination = "SELECT * FROM `products`";
+$res = mysqli_query($connection, $pagination);
+if(mysqli_num_rows($res) > 0){
+    $total_records = mysqli_num_rows($res);
+    $total_pg = ceil($total_records / $limit);
+    echo '<ul class="pagination">';
+    if($pgno > 1){
+        echo '<li class="page-item"><a class="page-link" href="showproducts.php?pg='.($pgno - 1).'">Prev</a></li>';
+        
+    }
+    for($i = 1; $i <= $total_pg; $i++){
+        $active = $i == $pgno? 'active':'';
+        echo '<li class="page-item '.$active.'"><a class="page-link" href="showproducts.php?pg='.$i.'">'.$i.'</a></li>';
+    }
+    if($pgno < $total_pg){
+        echo '<li class="page-item"><a class="page-link" href="showproducts.php?pg='.($pgno + 1).'">Next</a></li>';
+
+    }
+    echo '</ul>';
+}
+
+?>
+
+
 
         </div>
 
